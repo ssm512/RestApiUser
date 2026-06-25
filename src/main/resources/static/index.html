@@ -25,7 +25,7 @@
 <main>
     <h2>회원 REST API 테스트</h2>
     <form id="form1">
-        <table>
+        <table class="form-table">
             <tr>
                 <td>아이디</td>
                 <td><input type="text" id="userid" required></td>
@@ -69,6 +69,99 @@
 <script>
     const API_URL = '/api/users'; // 기본 api 주소
 
+    // display header 문자열 작업
+    function table_header() {
+        return `
+            <tr>
+                <th>아이디</th>
+                <th>이름</th>
+                <th>이메일</th>
+                <th>가입일</th>
+                <th>삭제</th>
+            </tr>
+        `;
+    }
+
+    // 조회한 datalist 출력
+    function datalist_display(datalist) {
+        let html = `<table id="list" class="table table-striped">`;
+        html += table_header();
+        datalist.forEach(user => {
+            const userid = user.userid;
+            const username = user.username;
+            const email = user.email;
+            const indate = user.indate;
+            let tr = `
+                <tr>
+                    <td>${userid}</td>
+                    <td>${username}</td>
+                    <td>${email}</td>
+                    <td>${indate}</td>
+                    <td><button type="button" class="btnDel">🗑</button></td>
+                </tr>
+            `
+            html += tr;
+        })
+        html += `</table>`;
+
+        const div1El = document.getElementById('div1');
+        div1El.innerHTML = html;
+    }
+
+    // data 조회
+    // API_URL = '/aip/users'
+    // GET http://localhost:8080/api/users
+    // GET http://localhost:8080/api/users?keyword=user
+    // encodeURIComponent가 필요한 이유는 주소줄은 bit로 단위로 돌아다님
+    // 따라서 UTF-8로 변환해야함
+    async function getUsers() {
+        const keywordEl = document.getElementById('text');
+        const keyword = keywordEl.value.trim();
+        const url = (keyword)
+            ? `${API_URL}?keyword=${encodeURIComponent(keyword)}`
+            :API_URL;
+        const datalist = await requestJson(url);
+        datalist_display(datalist);
+    }
+
+    // requestJson 함수
+    // 비동기 async
+    // fetch호출 하면 then도 동작을 해야 하는데 이는 data가 도착한 후에 동작을 함
+    // then이 올때까지 기다렸다가 작동시키기 위해서
+    // options 객체 ? 찾아볼것
+    async function requestJson(url, options={}) {
+        const response = await fetch(url, options);
+        const text = await response.json();
+        let data = null;
+
+        // 조회한 결과가 있다면
+        if (text) {
+            try {
+                data = JSON.parse(text);    // text(JSON 문자열) -> Javascript 객체로 변환
+            } catch (err) {
+                data = text;        // 변환에 실패하면 그냥 문자열을 넣어라
+            }
+        }
+        // 조회 status code 200이 아니면
+        if(!response.ok){
+            throw new Error(response.error);
+        }
+        return data;
+    }
+
+    // window.onload
+    window.onload = function () {
+        // 검색 버튼을 클릭하면 조회
+        const btnOkEl = document.querySelector('#btnOk');
+        btnOkEl.onclick = async function () {
+            try {
+                await getUsers();
+            } catch (err) {
+                console.error(err);
+                alert(err);
+            }
+        }
+    }
 </script>
 </body>
 </html>
