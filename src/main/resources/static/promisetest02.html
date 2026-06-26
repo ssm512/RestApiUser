@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <input type="text" id="userid" placeholder="userid 입력" />
+    <button id="btnGetData">Get Data</button>
+    <button id="btnGetData2">Get Data2</button>
+    <button id="btnGetData3">Get Data3</button>
+    <div id="div1"></div>
+    <script>
+        // http://localhost:8080/api/users
+        const btnGetDataEl = document.querySelector("#btnGetData");
+        const btnGetData2El = document.querySelector("#btnGetData2");
+        const btnGetData3El = document.querySelector("#btnGetData3");
+        const textEl = document.querySelector("#userid");
+        const div1El = document.querySelector("#div1");
+
+        btnGetDataEl.onclick = function () {
+            let url = "/api/users";
+            if (textEl.value != ''){
+                url += '?keyword=' + textEl.value;
+            }
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    div1El.innerHTML = JSON.stringify(data);
+                })
+                .catch(error => {
+                console.log(error);
+            })
+        }
+
+        btnGetData2El.onclick = async function () {
+            let url = "/api/users";
+            if (textEl.value != ''){
+                url += '?keyword=' + textEl.value;
+            }
+            try {
+                const res = await fetch(url)
+                const data = await res.json()
+                console.log(data)
+                div1El.innerHTML = JSON.stringify(data);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        async function loads(url) {
+            try {
+                const res = await fetch(url)
+                const data = await res.json()
+                console.log(data)
+                div1El.innerHTML = JSON.stringify(data);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        btnGetData3El.onclick = function () {
+            let url = "/api/users";
+            if (textEl.value != ''){
+                url += '?keyword=' + textEl.value;
+            }
+            loads(url);
+        }
+
+    </script>
+</body>
+</html>

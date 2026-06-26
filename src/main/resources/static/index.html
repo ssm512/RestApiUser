@@ -7,11 +7,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <style>
         main {width: 80%; margin: 30px auto;}
-        table, tr, td {
+        table, th, td {
             border-collapse: collapse;
             border: 1px solid #ccc;
         }
-        tr, td {padding: 10px; text-align: center;}
+        th, td {padding: 10px; text-align: center;}
         #div1 {margin-top: 30px; margin-bottom: 200px;}
         #list button {border:0; background: #fff;}
         #list tr:hover:not(:first-child) {background: yellow;}
@@ -69,6 +69,7 @@
 <script>
     const API_URL = '/api/users'; // 기본 api 주소
 
+    // #div1 table ui 시작
     // display header 문자열 작업
     function table_header() {
         return `
@@ -108,7 +109,29 @@
         div1El.innerHTML = html;
     }
 
-    // data 조회
+    // text_clear 함수
+    function text_clear() {
+        const useridEl = document.getElementById('userid');
+        const usernameEl = document.getElementById('username');
+        const emailEl = document.getElementById('email');
+        const passwdEl = document.getElementById('passwd');
+        const indateEl = document.getElementById('indate');
+
+        useridEl.value = '';
+        usernameEl.value = '';
+        emailEl.value = '';
+        passwdEl.value = '';
+        indateEl.value = '';
+
+        useridEl.focus();
+    }
+
+
+    // 여기까지가 화면 처리에 대한 부분임
+    /*-----------------------------------------------------------------------------------------*/
+
+    // data 조작
+    // data 목록 조회
     // API_URL = '/aip/users'
     // GET http://localhost:8080/api/users
     // GET http://localhost:8080/api/users?keyword=user
@@ -124,6 +147,24 @@
         datalist_display(datalist);
     }
 
+    // data_insert
+    async function data_insert() {
+        const options = {
+            method: 'POST',
+            body: JSON.stringify({
+                userid: 'foo',
+                passwd: 'bar',
+                username: 'foobar',
+                email: 'foobar@example.com'
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        }
+        await requestJson(API_URL, options);
+        text_clear();
+        await loadUsers();
+    }
     // requestJson 함수
     // 비동기 async
     // fetch호출 하면 then도 동작을 해야 하는데 이는 data가 도착한 후에 동작을 함
@@ -131,7 +172,7 @@
     // options 객체 ? 찾아볼것
     async function requestJson(url, options={}) {
         const response = await fetch(url, options);
-        const text = await response.json();
+        const text = await response.json(); // 결과문자열 -> javascript 객체 변환 (JSON.parse())
         let data = null;
 
         // 조회한 결과가 있다면
@@ -148,12 +189,15 @@
         }
         return data;
     }
+    // data 조작 끝
+    /*-----------------------------------------------------------------------------------------*/
 
+    // 프로그램이 시작되면
     // window.onload
     window.onload = function () {
         // 검색 버튼을 클릭하면 조회
         const btnOkEl = document.querySelector('#btnOk');
-        btnOkEl.onclick = async function () {
+        btnOkEl.onclick =  async function () {
             try {
                 await getUsers();
             } catch (err) {
@@ -161,6 +205,85 @@
                 alert(err);
             }
         }
+        btnOkEl.click();
+
+        // div1 table 의 row을 더블클릭 했을때 input 요소에 값 전달하기
+        // const tr = document.querySelector('#div1 tr:hover');
+        // tr : Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')
+        // at window.onload
+        // click을 해서 실행할 때 (동적으로) 생성된 element(tag)는 해당 선택자(#div1 tr:hover or #list tr:hover)로 찾지 못한다
+        // 해결방법 : 미리 생성된, 부모역할을 하는 tag(<div id="div1">)에 이벤트를 걸어준다
+        // div1El.addEventListener('mouseover', 마우스 hover되면 event
+        const div1El = document.querySelector('#div1');
+        div1El.addEventListener('dblclick', event => {
+            /*console.log(event.target);*/ // td
+
+            let tds = event.target.parentNode.children;
+            //let tds = event.target.closest('tr').children;
+            console.dir(tds);
+            // HTMLCollection(5) [td, td, td, td, td] : 찾은게 tag collection일 때 forEach()로 출력 안됨
+            /*tds.forEach(td => {
+                console.dir(td);
+            }) 안됨*/
+            // 아래의 로 Array.from(tds).forEach는 출력됨
+
+            const useridEl = document.getElementById('userid');
+            const usernameEl = document.getElementById('username');
+            const emailEl = document.getElementById('email');
+            const indateEl = document.getElementById('indate');
+            const passwdEl = document.getElementById('passwd');
+
+            Array.from(tds).forEach((td,i) => {
+                if (td.tagName != "TD") return;
+                console.log(td)
+                switch (i) {
+                    case 0: useridEl.value = td.innerHTML; break;
+                    case 1: usernameEl.value = td.innerHTML; break;
+                    case 2: emailEl.value = td.innerHTML; break;
+                    case 3: indateEl.value = td.innerHTML; break;
+                }
+
+            })
+            // for 문 정상 동작함
+            /*for (const td of tds) {
+                console.dir(td);
+            }*/
+            // alert('메롱')
+        })
+
+        /*-------------------------------------------------------------------------------------*/
+        // a tag를 버튼으로 사용하려면 기본 이벤트(href로의 이동)를 무력화해야됨
+        // 추가 버튼 클릭
+        const btnInsertEl = document.getElementById('btnInsert');
+        btnInsertEl.addEventListener('click', async function (event) {
+            //alert('추가')
+            console.log(event)
+            event.preventDefault(); // 기본 이벤트 취소
+            event.stopPropagation();
+            try {
+                await data_insert();
+            } catch (err) {
+                console.log(err);
+                alert("오류발생");
+            }
+        })
+        // 수정 버튼 클릭
+        const btnUpdateEl = document.getElementById('btnUpdate');
+        btnUpdateEl.addEventListener('click', async function () {
+            alert('수정')
+        })
+
+        // 삭제 버튼 클릭
+        const btnDeleteEl = document.getElementById('btnDelete');
+        btnDeleteEl.addEventListener('click', async function () {
+            alert('삭제')
+        })
+        // clear 버튼 클릭
+        const btnClearEl = document.getElementById('btnClear');
+        btnClearEl.addEventListener('click', async function () {
+            alert('clear')
+            text_clear();
+        })
     }
 </script>
 </body>
