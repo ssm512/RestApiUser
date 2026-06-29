@@ -93,7 +93,7 @@
             const email = user.email;
             const indate = user.indate;
             let tr = `
-                <tr>
+                <tr data-userid="${userid}">
                     <td>${userid}</td>
                     <td>${username}</td>
                     <td>${email}</td>
@@ -165,6 +165,20 @@
         text_clear();
         await getUsers();
     }
+
+    // data_delete()
+    // DELETE http://localhost:8080/api/users/test01
+    async function data_delete ( userid ) {
+        // API_URI = /api/users
+        // DELETE /api/users/test1
+        await requestJson(`${API_URL}/${userid}`, {
+            method: 'DELETE'
+        })
+
+        text_clear();
+        await getUsers(); // data 전체조회
+    }
+
     // requestJson 함수
     // 비동기 async
     // fetch호출 하면 then도 동작을 해야 하는데 이는 data가 도착한 후에 동작을 함
@@ -275,9 +289,50 @@
 
         // 삭제 버튼 클릭
         const btnDeleteEl = document.getElementById('btnDelete');
-        btnDeleteEl.addEventListener('click', async function () {
-            alert('삭제')
+        btnDeleteEl.addEventListener('click', async function (event) {
+            //alert('삭제')
+            event.preventDefault(); // 기본 이벤트 제거
+            event.stopPropagation(); // 이벤트 버블링 방지
+
+            const useridEl = document.getElementById('userid');
+            if (useridEl.value == '') return;
+
+            let yes = confirm(useridEl.value + "를 삭제하시겠습니까?")
+
+            if ( !yes || useridEl.value == "admin") return;
+
+
+            try {
+                await data_delete(useridEl.value);
+            } catch (err) {
+                console.log(err);
+                alert('오류발생');
+            }
         })
+
+        // 삭제버튼 : 휴지통 아이콘 클릭 :
+        // 실행시 생성된 버튼이라 검색 불가능임 document.querySelector('.btnDel'); -> null
+        //
+        div1El.addEventListener('click', async e => {
+            e.preventDefault();
+            e.stopPropagation();
+            // el.closest('tr') : el의 가장 가까운 부모 tag
+            console.dir(e.target.closest('tr'));
+            const tr = e.target.closest('tr')
+            const userid = tr.dataset.userid;
+            alert(userid);
+            let yes = confirm(userid + '를 삭제하시겠습니까?')
+
+            if( !yes || userid == "admin" ) return;
+            try {
+                await data_delete(userid);
+            } catch (err) {
+                console.log(err);
+                alert('오류발생');
+            }
+        })
+
+
         // clear 버튼 클릭
         const btnClearEl = document.getElementById('btnClear');
         btnClearEl.addEventListener('click', async function () {
