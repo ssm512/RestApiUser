@@ -3,6 +3,7 @@ package com.example.restapiuser.controller;
 import com.example.restapiuser.dto.DeleteResponse;
 import com.example.restapiuser.dto.UserCreateRequest;
 import com.example.restapiuser.dto.UserResponse;
+import com.example.restapiuser.dto.UserUpdateRequest;
 import com.example.restapiuser.entity.UserEntity;
 import com.example.restapiuser.service.UserService;
 import jakarta.validation.Valid;
@@ -57,6 +58,16 @@ public class UserRestController {
     public DeleteResponse delete (@PathVariable String userid) {
         userService.deleteUser(userid);
         return new DeleteResponse(userid, true);
+    }
+
+    // 회원수정 Update
+    // PATCH http://localhost:8080/api/users/test01
+    @PatchMapping("/{userid}")
+    public UserResponse update(
+            @PathVariable("userid") String userid,
+            @Valid @RequestBody UserUpdateRequest request
+    ) {
+        return userService.updateUser(userid, request);
     }
 
 }

@@ -19,7 +19,7 @@ Content-Type: application/json
 }
 
 ### 수정
-PUT http://localhost:8080/api/users/test01
+PATCH http://localhost:8080/api/users/test01
 Content-Type: application/json
 
 {

@@ -28,10 +28,10 @@ public class UserEntity {
     public UserEntity() {}
 
     // 생성자 override
-    public UserEntity(String userid, String username, String passwd, String email) {
+    public UserEntity(String userid, String passwd, String username, String email) {
         this.userid = userid;
-        this.username = username;
         this.passwd = passwd;
+        this.username = username;
         this.email = email;
     }
 
